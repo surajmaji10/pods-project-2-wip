@@ -50,7 +50,7 @@ public class Order extends AbstractBehavior<Order.Command> {
         ActorRef<Gateway.OrderInfo> replyTo = updateOrder.replyTo;
         if(this.status.equals("DELIVERED") || this.status.equals("CANCELLED")){
 
-        }else if(this.status.equals("PLACED")){
+        }else if(this.status.equals("PLACED") && (status.equals("CANCELLED") || status.equals("DELIVERED"))){
             this.status = status;
         }
         if(replyTo != null)
