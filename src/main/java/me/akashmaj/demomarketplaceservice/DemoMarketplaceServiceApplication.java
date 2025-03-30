@@ -36,6 +36,7 @@ public class DemoMarketplaceServiceApplication {
     }
 
     public static Behavior<Void> create() {
+
         return Behaviors.setup(context -> {
 
             /* creating the root actor */
@@ -53,8 +54,8 @@ public class DemoMarketplaceServiceApplication {
             MyProductsHandler myProductsHandler = new MyProductsHandler(gateway, askTimeout, scheduler);
             server.createContext("/products", myProductsHandler);
 
-//            MyUsersHandler myUsersHandler = new MyUsersHandler(gateway, askTimeout, scheduler);
-//            server.createContext("/users", myUsersHandler);
+            MyOrdersHandler myOrdersHandler = new MyOrdersHandler(gateway, askTimeout, scheduler);
+            server.createContext("/orders", myOrdersHandler);
 //
 //            MyWalletsHandler myWalletsHandler = new MyWalletsHandler(gateway, askTimeout, scheduler);
 //            server.createContext("/wallets", myWalletsHandler);
