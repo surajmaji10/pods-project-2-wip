@@ -4,6 +4,9 @@ import akka.actor.typed.Scheduler;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.concurrent.CompletableFuture;
 
 import java.time.Duration;
@@ -285,9 +288,19 @@ public class PostOrder extends AbstractBehavior<PostOrder.Command> {
             this.itemsToOrder = itemsToOrder;
             this.replyTo = replyTo;
         }
+        public String toJson() throws JsonProcessingException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        }
     }
 
-    private Behavior<PostOrder.Command> onCreateOrderActor(CreateOrderActor createOrderActor) {
+    private Behavior<PostOrder.Command> onCreateOrderActor(CreateOrderActor createOrderActor) throws JsonProcessingException {
+        System.out.println("Creating order actor");
+        System.out.println("_____________________________________________________");
+        System.out.println("PLACE ORDER ITEMS: for orderID: " + createOrderActor.orderId);
+        System.out.println("_____________________________________________________");
+        System.out.println(createOrderActor.toJson());
+        System.out.println("_____________________________________________________");
         try {
             ActorRef<Order.Command> order = getContext().spawn(
                     Order.create(createOrderActor.orderId, createOrderActor.userId, "PLACED", createOrderActor.totalOrderPrice, createOrderActor.itemsToOrder),
@@ -321,6 +334,10 @@ public class PostOrder extends AbstractBehavior<PostOrder.Command> {
             this.userId = userId;
             this.itemsToOrder = itemsToOrder;
             this.replyTo = replyTo;
+        }
+        public String toJson() throws JsonProcessingException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
         }
     }
 }

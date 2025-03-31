@@ -11,6 +11,7 @@ import java.util.concurrent.CompletionStage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 public class Gateway extends AbstractBehavior<Gateway.Command> {
 
@@ -22,6 +23,7 @@ public class Gateway extends AbstractBehavior<Gateway.Command> {
     ProductsPopulator productsPopulator;
 
     public Integer orderIdCounter = 2222;
+    public Integer orderItemsCounter = 4444;
 
     public Map<Integer, ActorRef<Order.Command>> orderActorsRef;
 
@@ -393,11 +395,27 @@ public class Gateway extends AbstractBehavior<Gateway.Command> {
             this.itemsToOrder = itemsToOrder;
             this.replyTo = replyTo;
         }
+        public String toJson() throws Exception {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        }
     }
 
-    private Behavior<Command> onPlaceOrder(PlaceOrder placeOrder) {
+    private Behavior<Command> onPlaceOrder(PlaceOrder placeOrder) throws Exception {
 //        postOrderActor.tell(new PostOrder.CreateOrder(222, placeOrder.userId, placeOrder.itemsToOrder, getContext().getSelf()));
         this.orderIdCounter += 1;
+        List<Map<String, Integer>> itemsToOrder = placeOrder.itemsToOrder;
+        for(var item: itemsToOrder) {
+            // set id field in each item
+            item.put("id", orderItemsCounter);
+            orderItemsCounter += 1;
+        }
+
+        System.out.println("_____________________________________________________");
+        System.out.println("PLACE ORDER ITEMS: for orderID: " + orderIdCounter);
+        System.out.println("_____________________________________________________");
+        System.out.println(placeOrder.toJson());
+        System.out.println("_____________________________________________________");
         CompletionStage<OrderInfo> orderInfo = AskPattern.ask(
                 postOrderActor,
                 (ActorRef<OrderInfo> replyTo) -> new PostOrder.CreateOrder(orderIdCounter, placeOrder.userId, placeOrder.itemsToOrder, replyTo),
