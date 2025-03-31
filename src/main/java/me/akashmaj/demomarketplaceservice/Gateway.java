@@ -149,10 +149,11 @@ public class Gateway extends AbstractBehavior<Gateway.Command> {
                     Integer productId = item.get("product_id");
                     Integer quantity = item.get("quantity");
                     productsRef.get(productId).tell(new Product.ProductUpdateRequest(null, productId, quantity));
-                    API.updateUserWallet(info.userId, info.totalPrice, "credit");
+//                    API.updateUserWallet(info.userId, info.totalPrice, "credit");
 
 
                 });
+                API.updateUserWallet(info.userId, info.totalPrice, "credit");
                 order.get().tell(new Order.UpdateOrder(info.orderId, "CANCELLED", null));
                 cancelOrder.replyTo.tell(new OrderInfo(null, info.orderId, info.userId, "CANCELLED", info.totalPrice, info.itemsToOrder, null));
             });

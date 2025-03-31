@@ -47,7 +47,7 @@ public class DemoMarketplaceServiceApplication {
 
 
 
-            HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);
             /* Creates a HTTP server that runs on localhost and listens to port 8000 */
 
             /* The "handle" method will receive each http request and respond to it */

@@ -101,9 +101,14 @@ class MyOrdersHandler implements HttpHandler {
                         jsonResponse = String.format("{\"id\": %d, \"status\": \"%s\"}",
                                 response.orderId, response.orderStatus);
                     }
+                    int responseCode = 201;
+                    if(response.orderStatus.equals("FAILED")){
+                        responseCode = 400;
+                    }
 
                     try {
-                        t.sendResponseHeaders(200, jsonResponse.length());
+                        t.getResponseHeaders().set("Content-Type", "application/json");
+                        t.sendResponseHeaders(responseCode, jsonResponse.length());
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();
@@ -145,7 +150,9 @@ class MyOrdersHandler implements HttpHandler {
                         throw new RuntimeException(e);
                     }
                     try {
+                        t.getResponseHeaders().set("Content-Type", "application/json");
                         t.sendResponseHeaders(200, jsonResponse.length());
+
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();
@@ -180,7 +187,9 @@ class MyOrdersHandler implements HttpHandler {
                         throw new RuntimeException(e);
                     }
                     try {
-                        t.sendResponseHeaders(200, jsonResponse.length());
+                        t.getResponseHeaders().set("Content-Type", "application/json");
+//                        t.sendResponseHeaders(200, jsonResponse.length());
+                        t.getResponseHeaders().set("Content-Type", "application/json");
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();
@@ -217,7 +226,9 @@ class MyOrdersHandler implements HttpHandler {
                         throw new RuntimeException(e);
                     }
                     try {
+                        t.getResponseHeaders().set("Content-Type", "application/json");
                         t.sendResponseHeaders(200, jsonResponse.length());
+//                        t.getResponseHeaders().set("Content-Type", "application/json");
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();

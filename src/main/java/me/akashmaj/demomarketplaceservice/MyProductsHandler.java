@@ -61,7 +61,9 @@ class MyProductsHandler implements HttpHandler {
                     }
 
                     try {
+                        t.getResponseHeaders().set("Content-Type", "application/json");
                         t.sendResponseHeaders(200, jsonResponse.length());
+//                        t.getResponseHeaders().set("Content-Type", "application/json");
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();
@@ -100,7 +102,9 @@ class MyProductsHandler implements HttpHandler {
                     }
 
                     try {
+                        t.getResponseHeaders().set("Content-Type", "application/json");
                         t.sendResponseHeaders(200, jsonResponse.length());
+//                        t.getResponseHeaders().set("Content-Type", "application/json");
                         OutputStream os = t.getResponseBody();
                         os.write(jsonResponse.getBytes());
                         os.close();
