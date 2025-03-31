@@ -446,7 +446,7 @@ public class Gateway extends AbstractBehavior<Gateway.Command> {
         public  String productDescription;
         @JsonProperty("price")
         public  Integer productPrice;
-        @JsonProperty("stockQuantity")
+        @JsonProperty("stock_quantity")
         public  Integer productStockQuantity;
         @JsonIgnore
         public  ActorRef<Gateway.Command> replyTo;

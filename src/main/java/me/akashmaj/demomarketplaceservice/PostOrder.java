@@ -177,7 +177,7 @@ public class PostOrder extends AbstractBehavior<PostOrder.Command> {
                             askTimeout,
                             scheduler
                     ).thenAccept(productInfoResponse -> {
-                        System.out.println("CURRENT STOCK for Product " + productId + " => " + productInfoResponse.productStockQuantity);
+                        System.out.println("> CURRENT STOCK for Product " + productId + " on orderID:" + orderId +" => " + productInfoResponse.productStockQuantity);
                         if (productInfoResponse.productStockQuantity < 0) {
                             System.out.println("SET FALSE");
                             orderPlaceable.set(false);
@@ -193,9 +193,51 @@ public class PostOrder extends AbstractBehavior<PostOrder.Command> {
                     System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                     System.out.println("PLACEABLE: " + orderPlaceable.get());
 
+                    if(orderPlaceable.get()){
+                        // Contact user API and wallet API to check user existence and balance
+                        String user = API.getUserById(userId);
+                        if (user.isEmpty()) {
+                            System.out.println("SET FALSE");
+                            orderPlaceable.set(false);
+                        }
+
+                        String wallet = API.getUserWalletById(userId);
+                        if (wallet.isEmpty()) {
+                            System.out.println("SET FALSE");
+                            orderPlaceable.set(false);
+                        }
+
+                        Integer balanceUser = API.getUserBalanceById(userId);
+                        if (balanceUser < totalOrderPrice.get()) {
+                            orderPlaceable.set(false);
+                        }
+
+                        Boolean discountAvailed = API.getUserDiscountById(userId, true);
+                        if (!discountAvailed) {
+                            totalOrderPrice.updateAndGet(v -> v * 90 / 100);
+                        }
+
+                        Boolean walletUpdated = API.updateUserWallet(userId, totalOrderPrice.get(), "debit");
+                        Boolean discountTaken = API.updateUserDiscount(userId, true);
+
+                        if (!walletUpdated || !discountTaken) {
+                            System.out.println("SET FALSE");
+                            orderPlaceable.set(false);
+
+                            // Rollback wallet and discount if something goes wrong
+                            if (walletUpdated) {
+                                API.updateUserWallet(userId, totalOrderPrice.get(), "credit");
+                            }
+                            if (discountTaken) {
+                                API.updateUserDiscount(userId, false);
+                            }
+                        }
+                    }
+
                     if (!orderPlaceable.get()) {
                         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++=");
                         // Rollback stock if order is not placeable
+                        System.out.println("PUTTING IT BACK FOR orderID ================================================================>" + orderId);
                         List<CompletionStage<Void>> rollbackTasks = itemsToOrder.stream()
                                 .map(item -> {
                                     Integer productId = item.get("product_id");
@@ -218,45 +260,6 @@ public class PostOrder extends AbstractBehavior<PostOrder.Command> {
                         CompletableFuture.allOf(rollbackTasks.toArray(new CompletableFuture[0]))
                                 .thenRun(() -> replyTo.tell(new Gateway.OrderInfo(null, orderId, userId, "FAILED", 0, itemsToOrder, null)));
                         return;
-                    }
-
-                    // Contact user API and wallet API to check user existence and balance
-                    String user = API.getUserById(userId);
-                    if (user.isEmpty()) {
-                        System.out.println("SET FALSE");
-                        orderPlaceable.set(false);
-                    }
-
-                    String wallet = API.getUserWalletById(userId);
-                    if (wallet.isEmpty()) {
-                        System.out.println("SET FALSE");
-                        orderPlaceable.set(false);
-                    }
-
-                    Integer balanceUser = API.getUserBalanceById(userId);
-                    if (balanceUser < totalOrderPrice.get()) {
-                        orderPlaceable.set(false);
-                    }
-
-                    Boolean discountAvailed = API.getUserDiscountById(userId, true);
-                    if (!discountAvailed) {
-                        totalOrderPrice.updateAndGet(v -> v * 90 / 100);
-                    }
-
-                    Boolean walletUpdated = API.updateUserWallet(userId, totalOrderPrice.get(), "debit");
-                    Boolean discountTaken = API.updateUserDiscount(userId, true);
-
-                    if (!walletUpdated || !discountTaken) {
-                        System.out.println("SET FALSE");
-                        orderPlaceable.set(false);
-
-                        // Rollback wallet and discount if something goes wrong
-                        if (walletUpdated) {
-                            API.updateUserWallet(userId, totalOrderPrice.get(), "credit");
-                        }
-                        if (discountTaken) {
-                            API.updateUserDiscount(userId, false);
-                        }
                     }
 
                     // Final order status
